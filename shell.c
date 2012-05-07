@@ -163,7 +163,7 @@ void executeCommand(char *command[], char *file, int newDescriptor,
                 close(commandDescriptor);
         }
         if (execvp(*command, command) == -1)
-                perror("MSH");
+                perror("SHELL142");
 }
 
 void launchJob(char *command[], char *file, int newDescriptor,
@@ -173,7 +173,7 @@ void launchJob(char *command[], char *file, int newDescriptor,
         pid = fork();
         switch (pid) {
         case -1:
-                perror("MSH");
+                perror("SHELL142");
                 exit(EXIT_FAILURE);
                 break;
         case 0:
@@ -185,7 +185,7 @@ void launchJob(char *command[], char *file, int newDescriptor,
                 usleep(20000);
                 setpgrp();
                 if (executionMode == FOREGROUND)
-                        tcsetpgrp(MSH_TERMINAL, getpid());
+                        tcsetpgrp(SHELL142_TERMINAL, getpid());
                 if (executionMode == BACKGROUND)
                         printf("[%d] %d\n", ++numActiveJobs, (int) getpid());
 
@@ -212,14 +212,14 @@ void launchJob(char *command[], char *file, int newDescriptor,
 void putJobForeground(t_job* job, int continueJob)
 {
         job->status = FOREGROUND;
-        tcsetpgrp(MSH_TERMINAL, job->pgid);
+        tcsetpgrp(SHELL142_TERMINAL, job->pgid);
         if (continueJob) {
                 if (kill(-job->pgid, SIGCONT) < 0)
                         perror("kill (SIGCONT)");
         }
 
         waitJob(job);
-        tcsetpgrp(MSH_TERMINAL, MSH_PGID);
+        tcsetpgrp(SHELL142_TERMINAL, SHELL142_PGID);
 }
 
 void putJobBackground(t_job* job, int continueJob)
@@ -233,7 +233,7 @@ void putJobBackground(t_job* job, int continueJob)
                 if (kill(-job->pgid, SIGCONT) < 0)
                         perror("kill (SIGCONT)");
 
-        tcsetpgrp(MSH_TERMINAL, MSH_PGID);
+        tcsetpgrp(SHELL142_TERMINAL, SHELL142_PGID);
 }
 
 void waitJob(t_job* job)
@@ -266,13 +266,13 @@ void changeDirectory()
 
 void init()
 {
-        MSH_PID = getpid();
-        MSH_TERMINAL = STDIN_FILENO;
-        MSH_IS_INTERACTIVE = isatty(MSH_TERMINAL);
+        SHELL142_PID = getpid();
+        SHELL142_TERMINAL = STDIN_FILENO;
+        SHELL142_IS_INTERACTIVE = isatty(SHELL142_TERMINAL);
 
-        if (MSH_IS_INTERACTIVE) {
-                while (tcgetpgrp(MSH_TERMINAL) != (MSH_PGID = getpgrp()))
-                        kill(MSH_PID, SIGTTIN);
+        if (SHELL142_IS_INTERACTIVE) {
+                while (tcgetpgrp(SHELL142_TERMINAL) != (SHELL142_PGID = getpgrp()))
+                        kill(SHELL142_PID, SIGTTIN);
 
                 signal(SIGQUIT, SIG_IGN);
                 signal(SIGTTOU, SIG_IGN);
@@ -281,18 +281,18 @@ void init()
                 signal(SIGINT, SIG_IGN);
                 signal(SIGCHLD, &signalHandler_child);
 
-                setpgid(MSH_PID, MSH_PID);
-                MSH_PGID = getpgrp();
-                if (MSH_PID != MSH_PGID) {
+                setpgid(SHELL142_PID, SHELL142_PID);
+                SHELL142_PGID = getpgrp();
+                if (SHELL142_PID != SHELL142_PGID) {
                         printf("Error, the shell is not process group leader");
                         exit(EXIT_FAILURE);
                 }
-                if (tcsetpgrp(MSH_TERMINAL, MSH_PGID) == -1)
-                        tcgetattr(MSH_TERMINAL, &MSH_TMODES);
+                if (tcsetpgrp(SHELL142_TERMINAL, SHELL142_PGID) == -1)
+                        tcgetattr(SHELL142_TERMINAL, &SHELL142_TMODES);
 
                 currentDirectory = (char*) calloc(1024, sizeof(char));
         } else {
-                printf("Could not make MSH interactive. Exiting..\n");
+                printf("Could not make SHELL142 interactive. Exiting..\n");
                 exit(EXIT_FAILURE);
         }
 }
@@ -323,7 +323,7 @@ void signalHandler_child(int p)
 {
         pid_t pid;
         int terminationStatus;
-        pid = waitpid(WAIT_ANY, &terminationStatus, WUNTRACED | WNOHANG);
+        pid = waitpid(-1, &terminationStatus, WUNTRACED | WNOHANG);
         if (pid > 0) {
                 t_job* job = getJob(pid, BY_PROCESS_ID);
                 if (job == NULL)
@@ -338,12 +338,12 @@ void signalHandler_child(int p)
                         jobsList = delJob(job);
                 } else if (WIFSTOPPED(terminationStatus)) {
                         if (job->status == BACKGROUND) {
-                                tcsetpgrp(MSH_TERMINAL, MSH_PGID);
+                                tcsetpgrp(SHELL142_TERMINAL, SHELL142_PGID);
                                 changeJobStatus(pid, WAITING_INPUT);
                                 printf("\n[%d]+   suspended [wants input]\t   %s\n",
                                        numActiveJobs, job->name);
                         } else {
-                                tcsetpgrp(MSH_TERMINAL, job->pgid);
+                                tcsetpgrp(SHELL142_TERMINAL, job->pgid);
                                 changeJobStatus(pid, SUSPENDED);
                                 printf("\n[%d]+   stopped\t   %s\n", numActiveJobs, job->name);
                         }
@@ -353,6 +353,6 @@ void signalHandler_child(int p)
                                 jobsList = delJob(job);
                         }
                 }
-                tcsetpgrp(MSH_TERMINAL, MSH_PGID);
+                tcsetpgrp(SHELL142_TERMINAL, SHELL142_PGID);
         }
 }

@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -53,10 +52,10 @@ static t_job* jobsList = NULL;
 
 
 
-static pid_t MSH_PID;
-static pid_t MSH_PGID;
-static int MSH_TERMINAL, MSH_IS_INTERACTIVE;
-static struct termios MSH_TMODES;
+static pid_t SHELL142_PID;
+static pid_t SHELL142_PGID;
+static int SHELL142_TERMINAL, SHELL142_IS_INTERACTIVE;
+static struct termios SHELL142_TMODES;
 
 void pipelining(int);
 void getTextLine();
@@ -100,3 +99,4 @@ void changeDirectory();
 void init();
 
 void signalHandler_child(int p);
+

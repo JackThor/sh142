@@ -174,13 +174,16 @@ void welcomeScreen()
 
 {
         printf("\n-------------------------------------------------\n");
-        printf("\tWelcome to MINI-shell  \n");
-        printf("\tAuthor :Bharathi\n");
+        printf("\tIt's sh142l v.1  \n");
+        printf("\tAuthors: Jack Thor & John Wang\n");
         printf("-------------------------------------------------\n");
         printf("\n\n");
 }
 
 void shellPrompt()
 {
-        printf("%s :> ",getcwd(currentDirectory, 1024));
+        printf("sh142 :> ",getcwd(currentDirectory, 1024));
 }
+
+
+
