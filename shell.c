@@ -6,11 +6,10 @@ void handleUserCommand()
 {
  //       if( chk_pipe()==1)
    //     {
-
         if (checkBuiltInCommands() == 0) {
 		//printf("%d",commandArgc);
 		// puts("chkbuiltin works");
-
+		
                 launchJob(commandArgv, "STANDARD", 0, FOREGROUND);
                               //puts(commandArgv[1]);
         }
@@ -64,7 +63,7 @@ void handleUserCommand()
 
 
 int checkBuiltInCommands()
-{
+{		
         if (strcmp("exit", commandArgv[0]) == 0) {
                 exit(EXIT_SUCCESS);
         }
@@ -101,7 +100,7 @@ int checkBuiltInCommands()
                         return 0;
                 if (job->status == SUSPENDED || job->status == WAITING_INPUT)
                         putJobForeground(job, TRUE);
-                else                                                                                                // status = BACKGROUND
+                else                                           // status = BACKGROUND
                         putJobForeground(job, FALSE);
                 return 1;
         }
@@ -142,16 +141,54 @@ int checkBuiltInCommands()
 	}
         //break;
         //}
-
+		char argu1[3];
+		if(strcmp("for", commandArgv[0]) == 0){
+		argu1 = commandArgv[0];
+		if(strcmp(argu1, "(n="));
+			}
+		
+		strcpy(argu1,commandArgv[0]);
+		if((argu1[0] == '$') && (argu1[1] == '?')){
+			char aInt = argu1[3];
+			getStatus(aInt);
+			if( 2 <= commandArgc <= 5 ){
+				int tempval = 1;
+				while(tempval <= commandArgc -1){
+					strcpy(argu1,commandArgv[tempval]);
+					if((argu1[0] == '$') && (argu1[1] == '?')){
+					char aInt = argu1[3];
+					getStatus(aInt);
+					}
+				}
+			}
+			return 1;
+		}
+		if((argu1[0] == '!') || (strcmp("&&", commandArgv[1])) || (strcmp("||", commandArgv[1]))){
+			if((argu1[0] == '!')){
+				commandArgv[0] = strtok(commandArgv[0] , "!");
+				j = system(commandArgv[0]);
+				j = !j;
+			}else{
+				j = system(commandArgv[0]);
+			}
+				int i = 1;
+				while(i < commandArgc){
+				j = conditioneval(j , commandArgv[i], commandArgv[i+1]);
+				}
+			return 1;
+		}
+			
+		if (strcmp("for", commandArgv[0]) == 0) {
+			}
 
 
         return 0;
 }
 
-void executeCommand(char *command[], char *file, int newDescriptor,
+int executeCommand(char *command[], char *file, int newDescriptor,
                     int executionMode)
-{
-        int commandDescriptor;
+{		
+		int commandDescriptor;
         if (newDescriptor == STDIN) {
                 commandDescriptor = open(file, O_RDONLY, 0600);
                 dup2(commandDescriptor, STDIN_FILENO);
@@ -162,8 +199,17 @@ void executeCommand(char *command[], char *file, int newDescriptor,
                 dup2(commandDescriptor, STDOUT_FILENO);
                 close(commandDescriptor);
         }
-        if (execvp(*command, command) == -1)
+				
+        if (execvp(*command, command) == -1){
                 perror("SHELL142");
+				exitStatus = setStatus(-1, *(command));
+				return -1;
+			}
+			else{
+			exitStatus = setStatus(0, *(command));
+			return 0;
+			}
+		
 }
 
 void launchJob(char *command[], char *file, int newDescriptor,
@@ -190,12 +236,10 @@ void launchJob(char *command[], char *file, int newDescriptor,
                         printf("[%d] %d\n", ++numActiveJobs, (int) getpid());
 
                 executeCommand(command, file, newDescriptor, executionMode);
-
                 exit(EXIT_SUCCESS);
                 break;
         default:
                 setpgid(pid, pid);
-
                 jobsList = insertJob(pid, pid, *(command), file, (int) executionMode);
 
                 t_job* job = getJob(pid, BY_PROCESS_ID);
@@ -217,8 +261,9 @@ void putJobForeground(t_job* job, int continueJob)
                 if (kill(-job->pgid, SIGCONT) < 0)
                         perror("kill (SIGCONT)");
         }
-
+		
         waitJob(job);
+		
         tcsetpgrp(SHELL142_TERMINAL, SHELL142_PGID);
 }
 
@@ -240,7 +285,7 @@ void waitJob(t_job* job)
 {
         int terminationStatus;
         while (waitpid(job->pid, &terminationStatus, WNOHANG) == 0) {
-                if (job->status == SUSPENDED)
+                if (job->status == SUSPENDED)	
                         return;
         }
         jobsList = delJob(job);
@@ -303,13 +348,17 @@ int main(int argc, char **argv, char **envp)
         welcomeScreen();
         shellPrompt();
         while (TRUE) {
+				
                 userInput = getchar();
+					
                 switch (userInput) {
                 case '\n':
                         shellPrompt();
                         break;
                 default:
+				
                         getTextLine();
+						
                         handleUserCommand();
                         shellPrompt();
                         break;

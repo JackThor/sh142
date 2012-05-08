@@ -31,13 +31,12 @@ static int commandArgc = 0;
 #define STDIN 1
 #define STDOUT 2
 
-
 #define BY_PROCESS_ID 1
 #define BY_JOB_ID 2
 #define BY_JOB_STATUS 3
 
 static int numActiveJobs = 0;
-
+static int j = 0;
 typedef struct job {
         int id;
         char *name;
@@ -48,7 +47,15 @@ typedef struct job {
         struct job *next;
 } t_job;
 
+typedef struct exitStat {
+        int cmmdID;
+        char *name;
+        int status;
+        struct exitStat *next;
+} exit_status;
+
 static t_job* jobsList = NULL;
+static exit_status* exitStatus = NULL;
 
 
 
@@ -80,7 +87,7 @@ void handleUserCommand();
 
 int checkBuiltInCommands();
 
-void executeCommand(char *command[], char *file, int newDescriptor,
+int executeCommand(char *command[], char *file, int newDescriptor,
                     int executionMode);
 
 void launchJob(char *command[], char *file, int newDescriptor,
@@ -99,4 +106,8 @@ void changeDirectory();
 void init();
 
 void signalHandler_child(int p);
+
+exit_status *setStatus(int status, char* name);
+void getStatus(int aInt);
+int conditioneval(int j ,char* operators, char* operand);
 

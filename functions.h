@@ -174,7 +174,7 @@ void welcomeScreen()
 
 {
         printf("\n-------------------------------------------------\n");
-        printf("\tIt's sh142l v.1  \n");
+        printf("\t SH42 v.1  \n");
         printf("\tAuthors: Jack Thor & John Wang\n");
         printf("-------------------------------------------------\n");
         printf("\n\n");
@@ -184,6 +184,80 @@ void shellPrompt()
 {
         printf("sh142 :> ",getcwd(currentDirectory, 1024));
 }
+
+exit_status *setStatus(int status, char * name){
+		if(exitStatus == NULL){
+		printf("Me again 555 \n");
+			exit_status *newStat = malloc(sizeof(exit_status));
+			newStat->name = (char*) malloc(sizeof(name));
+			newStat->name = strcpy(newStat->name, name);
+			newStat->status = status;
+			newStat->cmmdID = 1;
+			return newStat;
+		}
+		exit_status *tmpExit = exitStatus ->next;
+		while(tmpExit != NULL){
+			tmpExit = tmpExit->next;
+		}
+		exit_status *newStat = malloc(sizeof(exit_status));
+		newStat->name = (char*) malloc(sizeof(name));
+		newStat->name = strcpy(newStat->name, name);
+		newStat->status = status;
+		
+		if(tmpExit->cmmdID == 5){
+			tmpExit = exitStatus;
+			exitStatus = exitStatus->next;
+			exitStatus->cmmdID = exitStatus->cmmdID - 1;
+			while(tmpExit->next != NULL){
+				tmpExit = tmpExit->next;
+				tmpExit->cmmdID = tmpExit->cmmdID - 1;
+			}
+			
+		}
+		newStat->cmmdID = tmpExit->cmmdID + 1;
+		tmpExit->next = newStat;
+		printf("Me again\n");
+		return exitStatus;
+	}	
+
+void getStatus(int aInt){
+	if(exitStatus == NULL){
+		printf(" No command has been executed \n");
+	}else{
+		exit_status *temp = exitStatus;
+		while(temp != NULL){
+			if(temp->cmmdID == aInt){
+			printf(" &s exit status %d \n", temp->name, temp->status);
+			break;
+			}
+			temp = temp->next;
+		}
+	}
+
+}
+
+int conditioneval(int boo, char * operators, char * operand){
+	char first[1];
+	char* oper;
+	int op;
+	strcpy(first, operand);
+	if(first[0] == '!'){
+		oper = strtok(operand,"!");
+		op = !(system(oper));
+	}else{
+		op = system(operand);
+		}
+	if((strcmp("&&", operators))){
+		return boo && op;
+	}
+	if(strcmp("||", operators)){
+			return boo && op;
+	}
+	
+}
+
+
+
 
 
 
